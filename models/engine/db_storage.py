@@ -21,35 +21,44 @@ class DBStorage:
     def __init__(self):
         """Initializes the SQL database storage"""
         user = os.getenv('HBNB_MYSQL_USER')
-        password = os.getenv('HBNB_MYSQL_PWD')
+        pword = os.getenv('HBNB_MYSQL_PWD')
         host = os.getenv('HBNB_MYSQL_HOST')
         db_name = os.getenv('HBNB_MYSQL_DB')
         env = os.getenv('HBNB_ENV')
         DATABASE_URL = "mysql+mysqldb://{}:{}@{}:3306/{}".format(
-            user,
-            password,
-            host,
-            db_name)
-        self.__engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+            user, pword, host, db_name
+        )
+        self.__engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True
+        )
         if env == 'test':
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        dictionary = dict()
+        objects = dict()
         all_classes = (User, State, City, Amenity, Place, Review)
         if cls is None:
             for class_type in all_classes:
                 query = self.__session.query(class_type)
                 for obj in query.all():
                     obj_key = '{}.{}'.format(obj.__class__.__name__, obj.id)
-                    dictionary[obj_key] = obj
+                    objects[obj_key] = obj
         else:
             query = self.__session.query(cls)
             for obj in query.all():
                 obj_key = '{}.{}'.format(obj.__class__.__name__, obj.id)
-                dictionary[obj_key] = obj
-        return dictionary
+                objects[obj_key] = obj
+        return objects
+
+    def delete(self, obj=None):
+        """Removes an object from the storage database"""
+        if obj is not None:
+            self.__session.query(type(obj)).filter(
+                type(obj).id == obj.id).delete(
+                synchronize_session=False
+            )
 
     def new(self, obj):
         """Adds new object to storage database"""
@@ -66,14 +75,6 @@ class DBStorage:
         """Commits the session changes to database"""
         self.__session.commit()
 
-    def delete(self, obj=None):
-        """Removes an object from the storage database"""
-        if obj is not None:
-            self.__session.query(type(obj)).filter(
-                type(obj).id == obj.id).delete(
-                synchronize_session=False
-            )
-
     def reload(self):
         """Loads storage database"""
         Base.metadata.create_all(self.__engine)
@@ -82,3 +83,7 @@ class DBStorage:
             expire_on_commit=False
         )
         self.__session = scoped_session(SessionFactory)()
+
+    def close(self):
+        """Closes the storage engine."""
+        self.__session.close()
