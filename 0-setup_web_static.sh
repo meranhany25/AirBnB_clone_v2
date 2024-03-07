@@ -16,10 +16,10 @@ sudo echo '<html>
   </body>
 </html>' > /data/web_static/releases/test/index.html
 
-sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+sudo ln -s -f /data/web_static/releases/test/ /data/web_static/current
 
-sudo chown -hR ubuntu:ubuntu /data/
+sudo chown -R ubuntu:ubuntu /data/
 
-sudo sed -i '51 i \\n\tlocation /hbnb_static {\n\talias /data/web_static/current;\n\t}' /etc/nginx/sites-available/default
+sudo sed -i '/listen 80 default_server/a location /hbnb_static {\n\talias /data/web_static/current;\n\t}' /etc/nginx/sites-available/default
 
 sudo service nginx restart
