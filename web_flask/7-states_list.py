@@ -1,45 +1,26 @@
 #!/usr/bin/python3
 """
-A script to To load all cities of a State,
-If storage engine is DBStorage, use cities relationship
-Otherwise, use the public getter method cities.
-After each request remove the current SQLAlchemy Session,
-Declare a method to handle @app.teardown_appcontext
-Call in this method storage.close()
-Routes:
-/cities_by_states: display a HTML page: (inside the tag BODY)
-H1 tag: “States”
-
+starts a Flask web application
 """
+
 from flask import Flask, render_template
+from models import *
 from models import storage
-from models.state import State
-
-
 app = Flask(__name__)
 
 
-@app.route('/', strict_slashes=False)
-def home():
-    """A function that serves as the home route of the application.
-    Returns:
-        str: The greeting message "Hello HBNB!".
-    """
-    return "Hello HBNB!"
-
-
-@app.route("/states_list", strict_slashes=False)
+@app.route('/states_list', strict_slashes=False)
 def states_list():
-    """Displays cities per state"""
-    states = storage.all(State)
-    return render_template("7-states_list.html", states=states)
+    """display a HTML page with the states listed in alphabetical order"""
+    states = sorted(list(storage.all("State").values()), key=lambda x: x.name)
+    return render_template('7-states_list.html', states=states)
 
 
 @app.teardown_appcontext
-def teardown_context(ctx):
-    """Displays cities per state"""
+def teardown_db(exception):
+    """closes the storage on teardown"""
     storage.close()
 
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port='5000')
