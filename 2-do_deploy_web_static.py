@@ -8,7 +8,7 @@ from datetime import datetime
 from os.path import exists
 
 
-env.hosts = ['35.175.132.97', '3.90.70.164']
+env.hosts = ['54.173.112.197', '3.90.70.164']
 
 def do_deploy(archive_path):
     """ distributes an archive to my web servers
